@@ -24,6 +24,7 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.IOException
+import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -32,6 +33,7 @@ class MainActivity : AppCompatActivity() {
     private var photoUri: Uri? = null
     private val REQ_CAMERA_PERMISSION = 1111
     private val REQ_IMAGE_CAPTURE = 1112
+    private val REQ_GALLERY = 1113
     private lateinit var ivSelectImage: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +44,11 @@ class MainActivity : AppCompatActivity() {
         val buttonCamera = findViewById<Button>(R.id.btn_camera)
         buttonCamera.setOnClickListener {
             selectCamera()
+        }
+
+        val buttonGallery = findViewById<Button>(R.id.btn_gallery)
+        buttonGallery.setOnClickListener {
+            selectGallery()
         }
     }
 
@@ -74,6 +81,11 @@ class MainActivity : AppCompatActivity() {
 //        imagePath = imageFile.absolutePath
 //        return imageFile
 //    }
+
+    private fun selectGallery(){
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, REQ_GALLERY)
+    }
 
     //SAF
     private fun selectCamera() {
@@ -128,6 +140,13 @@ class MainActivity : AppCompatActivity() {
                     photoUri?.let { uri ->
                         ivSelectImage.setImageURI(uri)
                         saveImageToGallery(uri)
+                    }
+                }
+
+                REQ_GALLERY ->{
+                    val uri: Uri? = data?.data
+                    uri?.let { uri->
+                        ivSelectImage.setImageURI(uri)
                     }
                 }
             }
