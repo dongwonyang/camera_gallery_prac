@@ -9,6 +9,7 @@ import androidx.core.content.PackageManagerCompat
 import android.Manifest
 import android.app.Activity
 import android.content.ComponentName
+import android.content.ContentValues
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -100,6 +101,17 @@ class MainActivity : AppCompatActivity() {
         return File.createTempFile(imageFileName, ".jpg", storageDir)
     }
 
+    private fun deleteFilesFromDirectory(directory: File) { //val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES) 위치 파일 제거
+        if (directory.isDirectory) {
+            val files = directory.listFiles()
+            if (files != null) {
+                for (file in files) {
+                    // 파일을 삭제하거나 필요한 정리 작업 수행
+                    file.delete()
+                }
+            }
+        }
+    }
     override fun onActivityResult(
         requestCode: Int,
         resultCode: Int,
@@ -115,10 +127,34 @@ class MainActivity : AppCompatActivity() {
 //                    }
                     photoUri?.let { uri ->
                         ivSelectImage.setImageURI(uri)
+                        saveImageToGallery(uri)
                     }
                 }
             }
         }
+    }
+
+
+    private fun saveImageToGallery(imageUri: Uri) {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "fileName.jpg") // 파일 이름
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg") // MIME 타입
+            put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000) // 추가된 날짜 및 시간
+            put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis()) // 촬영된 날짜 및 시간
+            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES) // 저장할 디렉터리
+        }
+
+        val contentResolver = applicationContext.contentResolver
+        val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+        uri?.let { outputStreamUri ->
+            contentResolver.openOutputStream(outputStreamUri)?.use { outputStream ->
+                contentResolver.openInputStream(imageUri)?.use { inputStream ->
+                    inputStream.copyTo(outputStream) // 이미지 복사
+                }
+            }
+            Toast.makeText(this, "이미지가 갤러리에 저장되었습니다.", Toast.LENGTH_SHORT).show()
+        } ?: Toast.makeText(this, "이미지를 갤러리에 저장하는 데 실패했습니다.", Toast.LENGTH_SHORT).show()
     }
 
 }
