@@ -21,6 +21,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.IOException
@@ -84,8 +85,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun selectGallery(){
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, REQ_GALLERY)
+//        startActivityForResult(intent, REQ_GALLERY)
+        galleryLauncher.launch(intent)
     }
+
 
     //SAF
     private fun selectCamera() {
@@ -153,7 +156,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    val galleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = result.data
+            // 갤러리에서 이미지를 선택한 후의 처리
+            data?.data?.let { uri ->
+                // 선택한 이미지의 Uri를 사용하여 처리
+                saveImageToGallery(uri)
+            }
+        }
+    }
 
+    val cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            photoUri?.let { uri ->
+                ivSelectImage.setImageURI(uri)
+//                saveImageToGallery(uri)
+            }
+        }
+    }
     private fun saveImageToGallery(imageUri: Uri) {
         val contentValues = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, "fileName.jpg") // 파일 이름
