@@ -159,13 +159,13 @@ class MainActivity : AppCompatActivity() {
     val galleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data: Intent? = result.data
-            // 갤러리에서 이미지를 선택한 후의 처리
-            data?.data?.let { uri ->
-                // 선택한 이미지의 Uri를 사용하여 처리
-                saveImageToGallery(uri)
+            val uri: Uri? = data?.data
+            uri?.let { uri ->
+                ivSelectImage.setImageURI(uri)
             }
         }
     }
+
 
     val cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){result ->
         if (result.resultCode == Activity.RESULT_OK) {
